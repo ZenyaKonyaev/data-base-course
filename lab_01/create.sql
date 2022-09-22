@@ -19,7 +19,7 @@ create table public.studios(
 
 drop table if exists public.mangacas;
 create table public.mangacas(
-                               id int primary,
+                               id int primary key,
                                name text,
                                surname text,
                                patronymic text,
@@ -66,7 +66,7 @@ create table public.resounders(
 );
 
 drop table if exists public.link_resounders_animes;
-create table public.link_sounders_animes(
+create table public.link_resounders_animes(
                                     name_resounder text,
                                     name_anime text
 );
