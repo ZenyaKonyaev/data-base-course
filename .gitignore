@@ -1,0 +1,4 @@
+**/venv
+**/.idea
+lab_01/parserInfo/*.csv
+
