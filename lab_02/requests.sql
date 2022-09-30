@@ -190,6 +190,18 @@ select id, name, manager_id from (select id,
 where num_row = 1;
 
 
+
+-- Задание на защиту
+-- Вывести всех женских сэйю, которые участвовали в аниме, которые переозвучивали anidub и anilibria
+select idsSounders.id, public.sounders.name, public.sounders.sex from
+(select id from
+(select * from public.link_resounders_animes as lra where lra.name_resounder in ('AniLibria','Anidub')) as a_anim
+join public.link_sounders_animes as lsa on lsa.name = a_anim.name_anime) as idsSounders join public.sounders on idsSounders.id = public.sounders.id and public.sounders.sex = 'f' group by idsSounders.id, public.sounders.name, public.sounders.sex;
+
+
+
+
+
 -- Доп задание (еще не сделано)
 drop table if exists public.versionsA;
 create table versionsA(
