@@ -86,6 +86,47 @@ CALL add_resounder_clr('Animedia', 'y', 9.5, 2017);
 
 -- 5
 -- Триггер CLR
--- 
+-- По мере того, как из таблицы студий переозвучки удаляются студии, эти события записываются в таблицу аудита
+
+drop table if exists resounders_audit;
+create table if not exists resounders_audit(
+    name_resounder text,
+    action text,
+    time_operation text
+);
+
+create or replace function delete_resounder_trigger()
+returns trigger
+as $$
+    from datetime import datetime
+    deleted_name = TD["old"]["name"]
+    request = plpy.prepare("INSERT INTO public.resounders_audit(name_resounder, action, time_operation) values ($1, $2, $3)", ["TEXT", "TEXT", "TEXT"])
+    plpy.execute(request, [deleted_name, 'D', datetime.now()])
+    return TD["new"]
+$$ language plpython3u;
+
+drop trigger if exists resounders_audit on resounders;
+create trigger resounders_audit after DELETE ON resounders
+    for each row execute procedure delete_resounder_trigger();
+
+delete from resounders where name = 'Animedia';
+
+-- 6
+-- Определяемый пользователем тип данных CLR
+-- Функция, которая возвращает тип данных (аниме-стиль рисовки)
+
+create type anime_style as (
+    _name_anime text,
+    _style_draw text
+);
+
+create or replace function get_anime_style(_name text)
+returns anime_style as
+$$
+    result = plpy.execute(f"select style_draw from (animes join studios_draw on public.animes.studio_draw = public.studios_draw.name) where animes.name = '{_name}'")
+    return (_name, result[0]["style_draw"])
+$$ language plpython3u;
+
+select * from get_anime_style('Steins;Gate');
 
 
