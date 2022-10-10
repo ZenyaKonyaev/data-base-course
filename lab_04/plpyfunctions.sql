@@ -109,7 +109,7 @@ drop trigger if exists resounders_audit on resounders;
 create trigger resounders_audit after DELETE ON resounders
     for each row execute procedure delete_resounder_trigger();
 
-delete from resounders where name = 'Animedia';
+delete from resounders where name = 'AniFilm';
 
 -- 6
 -- Определяемый пользователем тип данных CLR
@@ -130,3 +130,33 @@ $$ language plpython3u;
 select * from get_anime_style('Steins;Gate');
 
 
+
+-- Задание на защиту
+-- Задаем жанр аниме как параметр -> выводит всех студии переозвучик, котор
+-- боевик (название аниме, все студии переозвучки)
+create or replace function find_animes_resounders_by_genre(_genre text)
+returns table (
+    _name text,
+    _resounders_arr text
+)
+AS $$
+    animes_buf = plpy.execute(f"select * from public.animes")
+    links_buf = plpy.execute(f"select * from public.link_resounders_animes")
+    result = []
+    for anime in animes_buf:
+        if anime["genre"] != _genre:
+            continue
+        resounders_str = ""
+        for link in links_buf:
+            if link["name_anime"] == anime["name"]:
+                resounders_str += link["name_resounder"]
+                resounders_str += " "
+        if resounders_str == "":
+            continue
+        result.append({"_name":anime["name"], "_resounders_arr":resounders_str})
+    return result
+$$ LANGUAGE plpython3u;
+
+select * from find_animes_resounders_by_genre('Action')
+
+select * from link_resounders_animes where name_anime = 'Overlord II'
